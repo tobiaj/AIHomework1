@@ -14,21 +14,19 @@ import jade.lang.acl.ACLMessage;
  */
 public class TourGuideAgent extends Agent{
 
+    @Override
     protected void setup(){
 
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName( getAID() );
+        //calls the parent constructor with no arguments
+        super.setup();
+        System.out.println("The tour guide agent " + getLocalName() + " has started");
+        System.out.println(getName());
 
-        ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("virtual-tour");
-        serviceDescription.setName("tour-guide-agent");
-        dfd.addServices(serviceDescription);
+        registerService();
 
-        try {
-            DFService.register(this, dfd);
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
+        waitForTourRequestMessages();
+
+
 
         addBehaviour(new CyclicBehaviour() {
             @Override
@@ -43,9 +41,27 @@ public class TourGuideAgent extends Agent{
                         block();
                     }
                 }
-
         });
 
+    }
+
+    private void waitForTourRequestMessages() {
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName( getAID() );
+
+        ServiceDescription serviceDescription = new ServiceDescription();
+        serviceDescription.setType("virtual-tour");
+        serviceDescription.setName("tour-guide-agent");
+        dfd.addServices(serviceDescription);
+
+        try {
+            DFService.register(this, dfd);
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void registerService() {
     }
 
 }
