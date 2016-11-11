@@ -1,7 +1,10 @@
 package Agents;
 
+import com.sun.org.apache.regexp.internal.RE;
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.DataStore;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
@@ -9,6 +12,7 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.SubscriptionInitiator;
 import jade.proto.states.MsgReceiver;
@@ -18,7 +22,7 @@ import userAndArtifacts.User;
 /**
  * Created by tobiaj on 2016-11-09.
  */
-public class ProfilerAgents extends Agent{
+public class ProfilerAgents extends SuperAgent{
     private User user;
     private ArrayList tourGuides;
 
@@ -28,7 +32,6 @@ public class ProfilerAgents extends Agent{
 
         System.out.println("The Profiler guide agent " + getLocalName() + " has started");
         System.out.println(getName());
-
 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription serviceDescription = new ServiceDescription();
@@ -41,11 +44,12 @@ public class ProfilerAgents extends Agent{
 
         addBehaviour(subscribe);
 
-        ACLMessage waitForReply = new ACLMessage(ACLMessage.REQUEST);
+        MessageTemplate messageTemplate = MessageTemplate.MatchOntology("reply");
 
-        SimpleAchieveREInitiator simpleAchieveREInitiator = new SimpleAchieveREInitiator(this, waitForReply);
+        ReplyReceiver replyReceiver = new ReplyReceiver(this, messageTemplate, Long.MAX_VALUE, null, null);
 
-        addBehaviour(simpleAchieveREInitiator);
+        addBehaviour(replyReceiver);
+
     }
 
     private void requestATour() {
@@ -55,9 +59,16 @@ public class ProfilerAgents extends Agent{
         requestATourGuideMessage.addReceiver((AID) tourGuides.get(0));
         requestATourGuideMessage.setContent("tobbe");//This should be the user.
         requestATourGuideMessage.setOntology("tour");//Message that you match on in tourGuide
-        send(requestATourGuideMessage);
 
 
+        TickerBehaviour messageSpam = new TickerBehaviour(ProfilerAgents.this, 10000) {
+            @Override
+            protected void onTick() {
+                send(requestATourGuideMessage);
+            }
+        };
+
+        addBehaviour(messageSpam);
 
     }
 
@@ -99,14 +110,16 @@ public class ProfilerAgents extends Agent{
 
         }
 
+
         protected void handleInform(ACLMessage inform){
             try {
                 DFAgentDescription[] result = DFService.decodeNotification(inform.getContent());
                 if (result.length > 0) {
-                    System.out.println("Profiler agent " + getLocalName() + " received a subscription message from DF with name " + getDefaultDF());
+                    System.out.println("Profiler agent " + getLocalName() + " received a subscription message from SuperAgent with name " + getDefaultDF());
                     addTourGuide(result);
 
                     requestATour();
+
                 }
             } catch (FIPAException e) {
                 e.printStackTrace();
@@ -117,6 +130,35 @@ public class ProfilerAgents extends Agent{
 
     }
 
+    public class ReplyReceiver extends MsgReceiver{
+
+        public ReplyReceiver(Agent myAgent, MessageTemplate messageTemplate, long deadline, DataStore ds, Object msgKey) {
+            super(myAgent, messageTemplate, deadline, ds, msgKey);
+
+        }
+
+        @Override
+        protected void handleMessage(ACLMessage msg) {
+            System.out.println("Kommer jag hitt till handleMessage i reply receiver ");
+            System.out.println(msg.getContent());
+
+            AID AID = getCuratorAID(ProfilerAgents.this);
+
+            System.out.println("Hittar jag curator nu i profiler agents :" + AID);
+            ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
+            requestToCurator.setOntology("artifactsInfo");
+            requestToCurator.addReceiver(AID);
+            requestToCurator.setContent("Meddelandet från profiler agent som ska till curator agent");
+
+            GetArtifacts getArtifacts = new GetArtifacts(ProfilerAgents.this, requestToCurator);
+
+            addBehaviour(getArtifacts);
+        }
+
+
+    }
+
+
     public class GetArtifacts extends SimpleAchieveREInitiator {
 
         public GetArtifacts(Agent agent, ACLMessage requestToCurator) {
@@ -125,13 +167,14 @@ public class ProfilerAgents extends Agent{
 
         @Override
         protected ACLMessage prepareRequest(ACLMessage msg) {
-
+            System.out.println("kommer jag hit till get Artifacts");
             return super.prepareRequest(msg);
         }
 
         @Override
         protected void handleInform(ACLMessage msg){
-
+            System.out.println("KLARA?");
+            System.out.println(msg.getContent());
             super.handleInform(msg);
 
 
@@ -139,5 +182,7 @@ public class ProfilerAgents extends Agent{
 
 
     }
+
+
 
 }
