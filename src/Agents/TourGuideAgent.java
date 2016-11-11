@@ -1,13 +1,18 @@
 package Agents;
 
+import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.ReceiverBehaviour;
+import jade.core.behaviours.SequentialBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.AchieveREInitiator;
+import jade.proto.SimpleAchieveREInitiator;
+import jade.proto.states.MsgReceiver;
 
 /**
  * Created by tobiaj on 2016-11-09.
@@ -27,31 +32,77 @@ public class TourGuideAgent extends Agent{
         waitForTourRequestMessages();
 
 
+    }
 
-        addBehaviour(new CyclicBehaviour() {
-            @Override
-            public void action() {
-                ACLMessage message = receive();
-                    if (message != null){
-                        System.out.println( " - " +
-                                myAgent.getLocalName() + " <- " +
-                                message.getContent());
+    private void waitForTourRequestMessages() {
+
+        System.out.println("Kommer jag hit och väntar på ett meddelande");
+        MessageTemplate tourGuideRequest = MessageTemplate.MatchOntology("tour");
+        addBehaviour(new MsgReceiver(this, tourGuideRequest, Long.MAX_VALUE, null, null) {
+            protected void handleMessage(ACLMessage message) {
+
+                System.out.println("Tour guide agent received a tour request from the profiler agent");
+
+                AID AID = getCuratorAID();
+
+                ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
+                requestToCurator.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+                requestToCurator.setOntology("requestCurator");
+                message.addReceiver(AID);
+                requestToCurator.setContent(message.getContent());
+
+
+
+                addBehaviour(new SimpleAchieveREInitiator(TourGuideAgent.this, requestToCurator){
+                    protected void handleInform(ACLMessage message) {
+
+                        System.out.println("Received artifacts???? from the curator");
+                        ACLMessage reply = requestToCurator.createReply();
+                        reply.setPerformative(ACLMessage.INFORM);
+
+                        reply.setContent("artifacts");
+
+                        send(reply);
+
+
                     }
-                    else {
-                        block();
+
+                });
+
+            }
+
+
+            private AID getCuratorAID() {
+                DFAgentDescription template = new DFAgentDescription();
+                ServiceDescription serviceDescription = new ServiceDescription();
+                serviceDescription.setType("curatorAgent");
+                template.addServices(serviceDescription);
+
+                try {
+                    DFAgentDescription[] result = DFService.search(myAgent, template);
+                    if (result.length > 0) {
+                        return result[0].getName();
                     }
+                } catch (FIPAException e) {
+                    e.printStackTrace();
                 }
+
+                return null;
+            }
+
         });
 
     }
 
-    private void waitForTourRequestMessages() {
+
+    private void registerService() {
+
         DFAgentDescription dfd = new DFAgentDescription();
         dfd.setName( getAID() );
 
         ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("virtual-tour");
-        serviceDescription.setName("tour-guide-agent");
+        serviceDescription.setType("TourGuideAgent");
+        serviceDescription.setName(getName());
         dfd.addServices(serviceDescription);
 
         try {
@@ -59,9 +110,6 @@ public class TourGuideAgent extends Agent{
         } catch (FIPAException e) {
             e.printStackTrace();
         }
-    }
-
-    private void registerService() {
     }
 
 }
