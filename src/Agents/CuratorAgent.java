@@ -68,11 +68,5 @@ public class CuratorAgent extends Agent {
             reply.setPerformative(ACLMessage.INFORM);
             return reply;
         }
-
-        @Override
-        protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
-            System.out.println("kommer jag hit då i curator");
-            return super.prepareResultNotification(request, response);
-        }
     }
 }

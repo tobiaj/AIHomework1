@@ -101,7 +101,7 @@ public class TourGuideAgent extends Agent {
 
             System.out.println("Hittar jag curator? :" + AID);
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
-            requestToCurator.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
+            //requestToCurator.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
             requestToCurator.setOntology("artifactsRequest");
             requestToCurator.addReceiver(AID);
             requestToCurator.setContent(message.getContent());
@@ -131,6 +131,11 @@ public class TourGuideAgent extends Agent {
 
             return null;
         }
+
+        @Override
+        public int onEnd() {
+            return super.onEnd();
+        }
     }
 
     public class HandleTourRequestMessage extends SimpleAchieveREInitiator {
@@ -149,6 +154,7 @@ public class TourGuideAgent extends Agent {
             return super.prepareRequest(msg);
         }
 
+        @Override
         protected void handleInform(ACLMessage msg){
 
             super.handleInform(msg);
@@ -159,7 +165,7 @@ public class TourGuideAgent extends Agent {
             ACLMessage reply = originalMessage.createReply();
             reply.setPerformative(ACLMessage.INFORM);
 
-            reply.setContent("artifacts");
+            reply.setContent(msg.getContent());
 
             send(reply);
 

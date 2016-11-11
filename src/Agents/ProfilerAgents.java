@@ -9,7 +9,9 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
+import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.SubscriptionInitiator;
+import jade.proto.states.MsgReceiver;
 import jade.util.leap.ArrayList;
 import userAndArtifacts.User;
 
@@ -39,6 +41,11 @@ public class ProfilerAgents extends Agent{
 
         addBehaviour(subscribe);
 
+        ACLMessage waitForReply = new ACLMessage(ACLMessage.REQUEST);
+
+        SimpleAchieveREInitiator simpleAchieveREInitiator = new SimpleAchieveREInitiator(this, waitForReply);
+
+        addBehaviour(simpleAchieveREInitiator);
     }
 
     private void requestATour() {
@@ -49,6 +56,9 @@ public class ProfilerAgents extends Agent{
         requestATourGuideMessage.setContent("tobbe");//This should be the user.
         requestATourGuideMessage.setOntology("tour");//Message that you match on in tourGuide
         send(requestATourGuideMessage);
+
+
+
     }
 
     private void addTourGuide(DFAgentDescription[] result) {
@@ -101,6 +111,29 @@ public class ProfilerAgents extends Agent{
             } catch (FIPAException e) {
                 e.printStackTrace();
             }
+
+        }
+
+
+    }
+
+    public class GetArtifacts extends SimpleAchieveREInitiator {
+
+        public GetArtifacts(Agent agent, ACLMessage requestToCurator) {
+            super(agent, requestToCurator);
+        }
+
+        @Override
+        protected ACLMessage prepareRequest(ACLMessage msg) {
+
+            return super.prepareRequest(msg);
+        }
+
+        @Override
+        protected void handleInform(ACLMessage msg){
+
+            super.handleInform(msg);
+
 
         }
 
