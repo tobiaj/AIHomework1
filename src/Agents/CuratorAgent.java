@@ -1,10 +1,16 @@
 package Agents;
 
 import jade.core.Agent;
+import jade.core.behaviours.SequentialBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.SimpleAchieveREResponder;
 
 /**
  * Created by tobiaj on 2016-11-09.
@@ -12,13 +18,25 @@ import jade.domain.FIPAException;
 public class CuratorAgent extends Agent {
 
   public void setup() {
+      super.setup();
       System.out.println("The Curator agent " + getLocalName() + " has started");
 
       registerService();
 
+      SequentialBehaviour seq = new SequentialBehaviour();
+
+      MessageTemplate messageTemplate = MessageTemplate.MatchOntology("artifactsRequest");
+
+      ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplate);
+
+      seq.addSubBehaviour(artifactsRequest);
+
+      //seq.addSubBehaviour();
+
 
 
   }
+
 
     private void registerService() {
 
@@ -34,6 +52,17 @@ public class CuratorAgent extends Agent {
             DFService.register(this, dfd);
         } catch (FIPAException e) {
             e.printStackTrace();
+        }
+    }
+
+    class ArtifactsRequest extends SimpleAchieveREResponder {
+        public ArtifactsRequest(Agent agent, MessageTemplate messageTemplate) {
+            super(agent, messageTemplate);
+        }
+
+        @Override
+        protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
+            return super.prepareResponse(request);
         }
     }
 }

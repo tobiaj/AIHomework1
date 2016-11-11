@@ -22,6 +22,7 @@ public class ProfilerAgents extends Agent{
 
     @Override
     protected void setup() {
+        super.setup();
 
         System.out.println("The Profiler guide agent " + getLocalName() + " has started");
         System.out.println(getName());
@@ -34,24 +35,9 @@ public class ProfilerAgents extends Agent{
 
         template.addServices(serviceDescription);
 
-        //Add subscription to find tour guide
-        addBehaviour(new SubscriptionInitiator(this, DFService.createSubscriptionMessage(this, getDefaultDF(), template, search)){
+        Subscribe subscribe = new Subscribe(this, DFService.createSubscriptionMessage(this, getDefaultDF(), template, search));
 
-            protected void handleInform(ACLMessage inform){
-                try {
-                    DFAgentDescription[] result = DFService.decodeNotification(inform.getContent());
-                    if (result.length > 0) {
-                        System.out.println("Profiler agent " + getLocalName() + " received a subscription message from DF with name " + getDefaultDF());
-                        addTourGuide(result);
-
-                        requestATour();
-                    }
-                } catch (FIPAException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
+        addBehaviour(subscribe);
 
     }
 
@@ -94,6 +80,31 @@ public class ProfilerAgents extends Agent{
         } catch (FIPAException e) {
             e.printStackTrace();
         }
+    }
+
+    public class Subscribe extends SubscriptionInitiator {
+
+        public Subscribe(Agent agent, ACLMessage message){
+            super(agent, message);
+
+        }
+
+        protected void handleInform(ACLMessage inform){
+            try {
+                DFAgentDescription[] result = DFService.decodeNotification(inform.getContent());
+                if (result.length > 0) {
+                    System.out.println("Profiler agent " + getLocalName() + " received a subscription message from DF with name " + getDefaultDF());
+                    addTourGuide(result);
+
+                    requestATour();
+                }
+            } catch (FIPAException e) {
+                e.printStackTrace();
+            }
+
+        }
+
+
     }
 
 }
