@@ -99,14 +99,15 @@ public class TourGuideAgent extends Agent {
 
             AID AID = getCuratorAID();
 
+            System.out.println("Hittar jag curator? :" + AID);
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
             requestToCurator.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST);
-            requestToCurator.setOntology("requestCurator");
+            requestToCurator.setOntology("artifactsRequest");
             requestToCurator.addReceiver(AID);
             requestToCurator.setContent(message.getContent());
-            send(requestToCurator);
+            //send(requestToCurator);
 
-            HandleTourRequestMessage handle = new HandleTourRequestMessage(TourGuideAgent.this, message, requestToCurator);
+            HandleTourRequestMessage handle = new HandleTourRequestMessage(TourGuideAgent.this, requestToCurator, message);
             addBehaviour(handle);
 
 
@@ -133,17 +134,29 @@ public class TourGuideAgent extends Agent {
     }
 
     public class HandleTourRequestMessage extends SimpleAchieveREInitiator {
-        private ACLMessage requestToCurator;
+        private ACLMessage originalMessage;
 
-        public HandleTourRequestMessage(Agent agent, ACLMessage message, ACLMessage requestToCurator) {
-            super(agent, message);
-            this.requestToCurator = requestToCurator;
+        public HandleTourRequestMessage(Agent agent, ACLMessage requestToCurator, ACLMessage originalMessage) {
+            super(agent, requestToCurator);
+            this.originalMessage = originalMessage;
         }
 
-        protected void HandleInform(){
+        @Override
+        protected ACLMessage prepareRequest(ACLMessage msg) {
+            System.out.println("kommer jag hit till prepare i handle tour request ");
+            System.out.println(msg.getContent());
+            System.out.println(msg.getOntology());
+            return super.prepareRequest(msg);
+        }
+
+        protected void handleInform(ACLMessage msg){
+
+            super.handleInform(msg);
+
+            System.out.println(msg.getContent() + " content from curator");
 
             System.out.println("Received artifacts???? from the curator");
-            ACLMessage reply = requestToCurator.createReply();
+            ACLMessage reply = originalMessage.createReply();
             reply.setPerformative(ACLMessage.INFORM);
 
             reply.setContent("artifacts");

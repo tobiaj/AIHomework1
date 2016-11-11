@@ -3,10 +3,7 @@ package Agents;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.NotUnderstoodException;
-import jade.domain.FIPAAgentManagement.RefuseException;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.domain.FIPAAgentManagement.*;
 import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
@@ -29,7 +26,7 @@ public class CuratorAgent extends Agent {
 
       ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplate);
 
-      seq.addSubBehaviour(artifactsRequest);
+      addBehaviour(artifactsRequest);
 
       //seq.addSubBehaviour();
 
@@ -56,13 +53,26 @@ public class CuratorAgent extends Agent {
     }
 
     class ArtifactsRequest extends SimpleAchieveREResponder {
+
         public ArtifactsRequest(Agent agent, MessageTemplate messageTemplate) {
             super(agent, messageTemplate);
+            System.out.println("Hamnar jag här?");
         }
 
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-            return super.prepareResponse(request);
+            System.out.println("Kommer jag hit till preparerepsonse");
+
+            ACLMessage reply = request.createReply();
+            reply.setContent("tobbe är bäst");
+            reply.setPerformative(ACLMessage.INFORM);
+            return reply;
+        }
+
+        @Override
+        protected ACLMessage prepareResultNotification(ACLMessage request, ACLMessage response) throws FailureException {
+            System.out.println("kommer jag hit då i curator");
+            return super.prepareResultNotification(request, response);
         }
     }
 }
