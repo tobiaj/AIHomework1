@@ -1,69 +1,69 @@
 package Agents;
 
 import jade.core.Agent;
+import jade.core.behaviours.OneShotBehaviour;
 import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
-import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.*;
-import jade.domain.FIPAException;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREResponder;
+import jade.util.leap.ArrayList;
+import jade.util.leap.HashMap;
+import jade.util.leap.Iterator;
+import userAndArtifacts.Artifacts;
+import userAndArtifacts.User;
+
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Created by tobiaj on 2016-11-09.
  */
 public class CuratorAgent extends SuperAgent {
+    java.util.HashMap<Integer, Artifacts> listOfArtifacts;
 
-  public void setup() {
-      super.setup();
-      System.out.println("The Curator agent " + getLocalName() + " has started");
+    public void setup() {
+        super.setup();
+        System.out.println("The Curator agent " + getLocalName() + " has started");
 
-      registerService();
+        String service = "curatorAgent";
+        registerService(this, service);
 
-      ParallelBehaviour parallelBehaviour = new ParallelBehaviour();
+        ParallelBehaviour parallelBehaviour = new ParallelBehaviour();
 
-      SequentialBehaviour seq = new SequentialBehaviour();
+        SequentialBehaviour seq = new SequentialBehaviour();
 
-      MessageTemplate messageTemplate = MessageTemplate.MatchOntology("artifactsRequest");
-      MessageTemplate messageTemplate2 = MessageTemplate.MatchOntology("artifactsInfo");
+        MessageTemplate messageTemplate = MessageTemplate.MatchOntology("artifactsRequest");
+        MessageTemplate messageTemplate2 = MessageTemplate.MatchOntology("artifactsInfo");
 
-      ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplate);
+        ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplate);
+        ArtifactsInfo artifactsInfo = new ArtifactsInfo(this, messageTemplate2);
 
-      //addBehaviour(artifactsRequest);
+        parallelBehaviour.addSubBehaviour(artifactsRequest);
+        parallelBehaviour.addSubBehaviour(artifactsInfo);
 
-      ArtifactsInfo artifactsInfo = new ArtifactsInfo(this, messageTemplate2);
+        seq.addSubBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                createListOfArtifacts();
 
-      //addBehaviour(artifactsInfo);
+            }
+        });
 
-      parallelBehaviour.addSubBehaviour(artifactsRequest);
-      parallelBehaviour.addSubBehaviour(artifactsInfo);
+        seq.addSubBehaviour(parallelBehaviour);
 
-      addBehaviour(parallelBehaviour);
+        addBehaviour(seq);
 
-      //addBehaviour(artifactsRequest);
+    }
 
-      //seq.addSubBehaviour();
+    private void createListOfArtifacts() {
 
-
-
-  }
-
-
-    private void registerService() {
-
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName( getAID() );
-
-        ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("curatorAgent");
-        serviceDescription.setName(getName()); //getName() will return the name of which you start the agent
-        dfd.addServices(serviceDescription);
-
-        try {
-            DFService.register(this, dfd);
-        } catch (FIPAException e) {
-            e.printStackTrace();
+        listOfArtifacts = new java.util.HashMap<>();
+        for (int i = 0; i < 20; i++) {
+            Artifacts artifact = new Artifacts();
+            listOfArtifacts.put(artifact.getId(), artifact);
         }
     }
 
@@ -77,10 +77,22 @@ public class CuratorAgent extends SuperAgent {
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
             System.out.println("Kommer jag hit till prepareresponse i artifactsRequest");
-
             ACLMessage reply = request.createReply();
-            reply.setContent("tobbe är bäst");
             reply.setPerformative(ACLMessage.INFORM);
+
+            try {
+                User user = (User) request.getContentObject();
+                ArrayList listOfArtifactsIDs = createTourForUser(user);
+                try {
+                    reply.setContentObject(listOfArtifactsIDs);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
             return reply;
         }
 
@@ -89,6 +101,19 @@ public class CuratorAgent extends SuperAgent {
             myAgent.addBehaviour(this);
             return super.onEnd();
         }
+    }
+
+    private ArrayList createTourForUser(User user) {
+
+        ArrayList listOfArtifactsIDs = new ArrayList();
+
+            for (Artifacts artifact : listOfArtifacts.values()) {
+                if (artifact.getGenre().equals(user.getInterest())){
+                    listOfArtifactsIDs.add(artifact.getId());
+                }
+            }
+
+        return listOfArtifactsIDs;
     }
 
     class ArtifactsInfo extends SimpleAchieveREResponder {
@@ -103,9 +128,39 @@ public class CuratorAgent extends SuperAgent {
             System.out.println("Kommer jag hit till artifactsinfo");
 
             ACLMessage reply = request.createReply();
-            reply.setContent("tobbe skickar artifacts");
             reply.setPerformative(ACLMessage.INFORM);
+
+            try {
+                ArrayList listOfArtifactsIDs = (ArrayList) request.getContentObject();
+                ArrayList listOfArtifactsInfo = getInfoAboutArtifacts(listOfArtifactsIDs);
+                try {
+                    reply.setContentObject(listOfArtifactsInfo);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
             return reply;
+        }
+
+        private ArrayList getInfoAboutArtifacts(ArrayList listOfArtifactsIDs) {
+
+            ArrayList artifactsToReturnWithInformation = new ArrayList();
+
+            Iterator it = listOfArtifactsIDs.iterator();
+
+            while(it.hasNext()){
+                Artifacts artifact = listOfArtifacts.get(it.next());
+                if (artifact != null){
+                    artifactsToReturnWithInformation.add(artifact);
+                }
+
+            }
+
+            return artifactsToReturnWithInformation;
         }
 
         @Override
@@ -114,4 +169,6 @@ public class CuratorAgent extends SuperAgent {
             return super.onEnd();
         }
     }
+
+
 }

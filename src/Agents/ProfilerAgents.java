@@ -1,9 +1,10 @@
 package Agents;
 
-import com.sun.org.apache.regexp.internal.RE;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.DataStore;
+import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.ParallelBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,11 +14,14 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.SubscriptionInitiator;
 import jade.proto.states.MsgReceiver;
 import jade.util.leap.ArrayList;
 import userAndArtifacts.User;
+
+import java.io.IOException;
 
 /**
  * Created by tobiaj on 2016-11-09.
@@ -25,6 +29,8 @@ import userAndArtifacts.User;
 public class ProfilerAgents extends SuperAgent{
     private User user;
     private ArrayList tourGuides;
+    private ArrayList iDsOfArtifacts;
+    private ArrayList listOfArtifactsWithInformation;
 
     @Override
     protected void setup() {
@@ -32,6 +38,35 @@ public class ProfilerAgents extends SuperAgent{
 
         System.out.println("The Profiler guide agent " + getLocalName() + " has started");
         System.out.println(getName());
+
+        ParallelBehaviour paralell = new ParallelBehaviour();
+
+        paralell.addSubBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                createSubscription();
+
+            }
+        });
+
+        paralell.addSubBehaviour(new OneShotBehaviour() {
+            @Override
+            public void action() {
+                user = new User();
+            }
+        });
+
+        addBehaviour(paralell);
+
+        MessageTemplate messageTemplate = MessageTemplate.MatchOntology("reply");
+
+        ReplyReceiver replyReceiver = new ReplyReceiver(this, messageTemplate, Long.MAX_VALUE, null, null);
+
+        addBehaviour(replyReceiver);
+
+    }
+
+    private void createSubscription() {
 
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription serviceDescription = new ServiceDescription();
@@ -43,21 +78,18 @@ public class ProfilerAgents extends SuperAgent{
         Subscribe subscribe = new Subscribe(this, DFService.createSubscriptionMessage(this, getDefaultDF(), template, search));
 
         addBehaviour(subscribe);
-
-        MessageTemplate messageTemplate = MessageTemplate.MatchOntology("reply");
-
-        ReplyReceiver replyReceiver = new ReplyReceiver(this, messageTemplate, Long.MAX_VALUE, null, null);
-
-        addBehaviour(replyReceiver);
-
     }
 
     private void requestATour() {
         ACLMessage requestATourGuideMessage = new ACLMessage(ACLMessage.REQUEST);
-        requestATourGuideMessage.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST); //Varför använder alla den här, det funkar ju utan
+        //requestATourGuideMessage.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST); //Varför använder alla den här, det funkar ju utan
         System.out.println("tourGuides: " + tourGuides.get(0));
-        requestATourGuideMessage.addReceiver((AID) tourGuides.get(0));
-        requestATourGuideMessage.setContent("tobbe");//This should be the user.
+        requestATourGuideMessage.addReceiver((AID) tourGuides.get(0));//BEHÖVER FIXAS ?????
+        try {
+            requestATourGuideMessage.setContentObject(user);//This should be the user.
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         requestATourGuideMessage.setOntology("tour");//Message that you match on in tourGuide
 
 
@@ -138,24 +170,36 @@ public class ProfilerAgents extends SuperAgent{
         }
 
         @Override
-        protected void handleMessage(ACLMessage msg) {
+        protected void handleMessage(ACLMessage message) {
             System.out.println("Kommer jag hitt till handleMessage i reply receiver ");
-            System.out.println(msg.getContent());
 
+            try {
+                iDsOfArtifacts = (ArrayList) message.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
             AID AID = getCuratorAID(ProfilerAgents.this);
 
             System.out.println("Hittar jag curator nu i profiler agents :" + AID);
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
             requestToCurator.setOntology("artifactsInfo");
             requestToCurator.addReceiver(AID);
-            requestToCurator.setContent("Meddelandet från profiler agent som ska till curator agent");
+            try {
+                requestToCurator.setContentObject(iDsOfArtifacts);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
             GetArtifacts getArtifacts = new GetArtifacts(ProfilerAgents.this, requestToCurator);
 
             addBehaviour(getArtifacts);
         }
 
-
+        @Override
+        public int onEnd() {
+            myAgent.addBehaviour(this);
+            return super.onEnd();
+        }
     }
 
 
@@ -172,15 +216,26 @@ public class ProfilerAgents extends SuperAgent{
         }
 
         @Override
-        protected void handleInform(ACLMessage msg){
+        protected void handleInform(ACLMessage message){
+            super.handleInform(message);
             System.out.println("KLARA?");
-            System.out.println(msg.getContent());
-            super.handleInform(msg);
 
+            try {
+                listOfArtifactsWithInformation = (ArrayList) message.getContentObject();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Det här innehåller listan i slutet \n");
+            System.out.println(listOfArtifactsWithInformation);
 
         }
-
-
+/*
+        @Override
+        public int onEnd() {
+            myAgent.addBehaviour(this);
+            return super.onEnd();
+        }*/
     }
 
 

@@ -12,7 +12,7 @@ import jade.domain.FIPAException;
  */
 public class SuperAgent extends Agent {
 
-    public SuperAgent(){
+    public SuperAgent() {
 
     }
 
@@ -34,4 +34,21 @@ public class SuperAgent extends Agent {
         return null;
     }
 
+    public void registerService(Agent agent, String service) {
+
+        DFAgentDescription dfd = new DFAgentDescription();
+        dfd.setName(agent.getAID());
+
+        ServiceDescription serviceDescription = new ServiceDescription();
+        serviceDescription.setType(service);
+        serviceDescription.setName(agent.getName());
+        dfd.addServices(serviceDescription);
+
+        try {
+            DFService.register(this, dfd);
+        } catch (FIPAException e) {
+            e.printStackTrace();
+        }
+
+    }
 }

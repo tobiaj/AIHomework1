@@ -14,7 +14,6 @@ public class Artifacts implements Serializable {
     private String placeOfCreation;
     private Genre genre;
 
-
     public enum Genre {
         Painting,
         Pictures,
@@ -32,7 +31,57 @@ public class Artifacts implements Serializable {
         dateOfCreation = (int) (Math.random() * 2000);
         placeOfCreation = "Place " + id;
 
-        int chooseGenre = (int) (Math.random() * 4);
+        int chooseGenre = (int) (Math.random() * 3);
         genre = Genre.values()[chooseGenre];
     }
+
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getCreator() {
+        return creator;
+    }
+
+    public void setCreator(String creator) {
+        this.creator = creator;
+    }
+
+    public int getDateOfCreation() {
+        return dateOfCreation;
+    }
+
+    public void setDateOfCreation(int dateOfCreation) {
+        this.dateOfCreation = dateOfCreation;
+    }
+
+    public Genre getGenre() {
+        return genre;
+    }
+
+    public void setGenre(Genre genre) {
+        this.genre = genre;
+    }
+
+    public String getPlaceOfCreation() {
+        return placeOfCreation;
+    }
+
+    public void setPlaceOfCreation(String placeOfCreation) {
+        this.placeOfCreation = placeOfCreation;
+    }
+
 }

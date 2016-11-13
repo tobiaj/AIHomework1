@@ -12,9 +12,12 @@ import jade.domain.FIPAException;
 import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.AchieveREInitiator;
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.states.MsgReceiver;
+
+import java.io.IOException;
 
 /**
  * Created by tobiaj on 2016-11-09.
@@ -29,7 +32,9 @@ public class TourGuideAgent extends SuperAgent {
         System.out.println("The tour guide agent " + getLocalName() + " has started");
         System.out.println(getName());
 
-        registerService();
+        String service = "TourGuideAgent";
+
+        registerService(this, service);
 
         waitForTourRequestMessages();
 
@@ -37,7 +42,6 @@ public class TourGuideAgent extends SuperAgent {
 
     private void waitForTourRequestMessages() {
 
-        //System.out.println("Kommer jag hit och väntar på ett meddelande");
         MessageTemplate tourGuideRequest = MessageTemplate.MatchOntology("tour");
 
         MessageReceiver messageReceiver = new MessageReceiver(this, tourGuideRequest, Long.MAX_VALUE, null, null);
@@ -47,39 +51,12 @@ public class TourGuideAgent extends SuperAgent {
     }
 
 
-    private void registerService() {
-
-        DFAgentDescription dfd = new DFAgentDescription();
-        dfd.setName(getAID());
-
-        ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("TourGuideAgent");
-        serviceDescription.setName(getName());
-        dfd.addServices(serviceDescription);
-
-        try {
-            DFService.register(this, dfd);
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
-    }
-
-
     class MessageReceiver extends MsgReceiver {
-        private Agent myAgent;
-        private MessageTemplate messageTemplate;
-        private long deadline;
-        private DataStore ds;
-        private Object msgKey;
 
 
         public MessageReceiver(Agent myAgent, MessageTemplate messageTemplate, long deadline, DataStore ds, Object msgKey) {
             super(myAgent, messageTemplate, deadline, ds, msgKey);
-            this.messageTemplate = messageTemplate;
-            this.myAgent = myAgent;
-            this.deadline = deadline;
-            this.ds = ds;
-            this.msgKey = msgKey;
+
         }
 
         public void handleMessage(ACLMessage message) {
@@ -92,20 +69,29 @@ public class TourGuideAgent extends SuperAgent {
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
             requestToCurator.setOntology("artifactsRequest");
             requestToCurator.addReceiver(AID);
-            requestToCurator.setContent(message.getContent());
+
+            try {
+                requestToCurator.setContentObject(message.getContentObject());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
+
 
             HandleTourRequestMessage handle = new HandleTourRequestMessage(TourGuideAgent.this, requestToCurator, message);
             addBehaviour(handle);
 
 
         }
-
+/*
 
         @Override
         public int onEnd() {
-            myAgent.addBehaviour(this);
+            //myAgent.addBehaviour(this);
+            waitForTourRequestMessages();
             return super.onEnd();
-        }
+        }*/
     }
 
     public class HandleTourRequestMessage extends SimpleAchieveREInitiator {
@@ -119,8 +105,6 @@ public class TourGuideAgent extends SuperAgent {
         @Override
         protected ACLMessage prepareRequest(ACLMessage msg) {
             System.out.println("kommer jag hit till prepare i handle tour request ");
-            System.out.println(msg.getContent());
-            System.out.println(msg.getOntology());
             return super.prepareRequest(msg);
         }
 
@@ -133,10 +117,17 @@ public class TourGuideAgent extends SuperAgent {
 
             System.out.println("Received artifacts???? from the curator");
             ACLMessage reply = originalMessage.createReply();
+            System.out.println("den ska till : " + originalMessage.getSender());
             reply.setPerformative(ACLMessage.INFORM);
             reply.setOntology("reply");
 
-            reply.setContent(msg.getContent());
+            try {
+                reply.setContentObject(msg.getContentObject());
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (UnreadableException e) {
+                e.printStackTrace();
+            }
 
             send(reply);
 
@@ -144,7 +135,8 @@ public class TourGuideAgent extends SuperAgent {
 
         @Override
         public int onEnd() {
-            myAgent.addBehaviour(this);
+            //myAgent.addBehaviour(this);
+            waitForTourRequestMessages();
             return super.onEnd();
         }
     }
