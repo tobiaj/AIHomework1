@@ -43,7 +43,6 @@ public class ProfilerAgents extends SuperAgent{
             @Override
             public void action() {
                 createSubscription();
-
             }
         });
 
