@@ -10,7 +10,7 @@ public class User implements Serializable{
     private int age;
     private Name name;
     private Gender gender;
-    private Occupasion occupasion;
+    private Occupation occupation;
     private Artifacts.Genre interest;
     private int yearInterest;
 
@@ -28,7 +28,7 @@ public class User implements Serializable{
 
     }
 
-    private enum Occupasion {
+    private enum Occupation {
         economic,
         engineer,
         journalist,
@@ -39,7 +39,7 @@ public class User implements Serializable{
 
     public User(){
         int chooseGender = (int) (Math.random() * 1);
-        int chooseOccupasion = (int) (Math.random() * 4);
+        int chooseOccupation = (int) (Math.random() * 4);
         int chooseGenre = (int) (Math.random() * 3);
 
 
@@ -47,11 +47,11 @@ public class User implements Serializable{
         yearInterest = (int) (Math.random() * 500) + 1500;
 
         gender = Gender.values()[chooseGender];
-        occupasion = Occupasion.values()[chooseOccupasion];
+        occupation = Occupation.values()[chooseOccupation];
 
         interest = Artifacts.Genre.values()[chooseGenre];
 
-        name = Name.values()[chooseOccupasion];
+        name = Name.values()[chooseOccupation];
 
     }
 
@@ -95,12 +95,12 @@ public class User implements Serializable{
         this.yearInterest = yearInterest;
     }
 
-    public Occupasion getOccupasion() {
-        return occupasion;
+    public Occupation getOccupation() {
+        return occupation;
     }
 
-    public void setOccupasion(Occupasion occupasion) {
-        this.occupasion = occupasion;
+    public void setOccupation(Occupation occupasion) {
+        this.occupation = occupation;
     }
 
 }

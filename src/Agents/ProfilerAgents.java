@@ -52,8 +52,8 @@ public class ProfilerAgents extends SuperAgent{
             public void action() {
                 user = new User();
                 System.out.println("The user wanting to create a virtual tour is,  \n");
-                System.out.println("User: " + user.getName() + " " + user.getAge() + " " + user.getGender() + " " + user.getOccupasion()
-                        + " " + user.getInterest() + " " + user.getOccupasion() + " " + user.getYearInterest());
+                System.out.println("User: " + user.getName() + " " + user.getAge() + " " + user.getGender() + " " + user.getOccupation()
+                        + " " + user.getInterest() + " " + user.getOccupation() + " " + user.getYearInterest());
             }
         });
 
@@ -209,14 +209,5 @@ public class ProfilerAgents extends SuperAgent{
                 artifact.getGenre()  + " " + artifact.getPlaceOfCreation() + " " + artifact.getDateOfCreation() + "\n");
             }
         }
-/*
-        @Override
-        public int onEnd() {
-            myAgent.addBehaviour(this);
-            return super.onEnd();
-        }*/
     }
-
-
-
 }
