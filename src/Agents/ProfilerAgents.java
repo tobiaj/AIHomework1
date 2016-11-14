@@ -52,8 +52,9 @@ public class ProfilerAgents extends SuperAgent{
             public void action() {
                 user = new User();
                 System.out.println("The user wanting to create a virtual tour is,  \n");
+
                 System.out.println("User: " + user.getName() + " " + user.getAge() + " " + user.getGender() + " " + user.getOccupation()
-                        + " " + user.getInterest() + " " + user.getOccupation() + " " + user.getYearInterest());
+                        + " " + user.getInterest() + " " + user.getYearInterest());
             }
         });
 
@@ -68,7 +69,6 @@ public class ProfilerAgents extends SuperAgent{
     }
 
     private void createSubscription() {
-
         DFAgentDescription template = new DFAgentDescription();
         ServiceDescription serviceDescription = new ServiceDescription();
         serviceDescription.setType("TourGuideAgent");
@@ -79,13 +79,12 @@ public class ProfilerAgents extends SuperAgent{
         Subscribe subscribe = new Subscribe(this, DFService.createSubscriptionMessage(this, getDefaultDF(), template, search));
 
         addBehaviour(subscribe);
-
     }
 
     private void requestATour() {
         System.out.println("Profiler agent " + this.getLocalName() + " is creating a request message to the tour guide");
-        ACLMessage requestATourGuideMessage = new ACLMessage(ACLMessage.REQUEST);
 
+        ACLMessage requestATourGuideMessage = new ACLMessage(ACLMessage.REQUEST);
         requestATourGuideMessage.addReceiver((AID) tourGuides.get(0));//BEHÖVER FIXAS ?????
         try {
             requestATourGuideMessage.setContentObject(user);//This should be the user.
@@ -122,12 +121,12 @@ public class ProfilerAgents extends SuperAgent{
 
         protected void handleInform(ACLMessage inform){
             try {
-
                 DFAgentDescription[] result = DFService.decodeNotification(inform.getContent());
                 if (result.length > 0) {
                     System.out.println("Profiler agent " + getLocalName() + " received a subscription message from SuperAgent with name " + getDefaultDF());
                     addTourGuide(result);
                     requestATour();
+
                 }
             } catch (FIPAException e) {
                 e.printStackTrace();

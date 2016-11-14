@@ -51,8 +51,7 @@ public class Artifacts implements Serializable {
     }
 
     public Artifacts(){
-        double randomNumber = Math.random();
-        double rand = randomNumber * 100;
+        int rand = (int) (Math.random() * 100);
         int chooseGenre = (int) (Math.random() * 3);
         int choose = (int) (Math.random() * 6);
 
