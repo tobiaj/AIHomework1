@@ -19,19 +19,18 @@ public class Artifacts implements Serializable {
         Pictures,
         Sculpture,
         Photos
-
     }
 
     public Artifacts(){
         double randomNumber = Math.random();
         double rand = randomNumber * 100;
+        int chooseGenre = (int) (Math.random() * 3);
+
         id = (int) rand;
         name = "Thing " + id;
         creator = "creator " + id;
         dateOfCreation = (int) (Math.random() * 2000);
         placeOfCreation = "Place " + id;
-
-        int chooseGenre = (int) (Math.random() * 3);
         genre = Genre.values()[chooseGenre];
     }
 

@@ -11,7 +11,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.SearchConstraints;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
-import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
@@ -19,6 +18,7 @@ import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.SubscriptionInitiator;
 import jade.proto.states.MsgReceiver;
 import jade.util.leap.ArrayList;
+import userAndArtifacts.Artifacts;
 import userAndArtifacts.User;
 
 import java.io.IOException;
@@ -35,9 +35,7 @@ public class ProfilerAgents extends SuperAgent{
     @Override
     protected void setup() {
         super.setup();
-
         System.out.println("The Profiler guide agent " + getLocalName() + " has started");
-        System.out.println(getName());
 
         ParallelBehaviour paralell = new ParallelBehaviour();
 
@@ -53,6 +51,9 @@ public class ProfilerAgents extends SuperAgent{
             @Override
             public void action() {
                 user = new User();
+                System.out.println("The user wanting to create a virtual tour is,  \n");
+                System.out.println("User: " + user.getName() + " " + user.getAge() + " " + user.getGender() + " " + user.getOccupasion()
+                        + " " + user.getInterest() + " " + user.getOccupasion() + " " + user.getYearInterest());
             }
         });
 
@@ -81,9 +82,9 @@ public class ProfilerAgents extends SuperAgent{
     }
 
     private void requestATour() {
+        System.out.println("Profiler agent " + this.getLocalName() + " is creating a request message to the tour guide");
         ACLMessage requestATourGuideMessage = new ACLMessage(ACLMessage.REQUEST);
-        //requestATourGuideMessage.setProtocol(FIPANames.InteractionProtocol.FIPA_REQUEST); //Varför använder alla den här, det funkar ju utan
-        System.out.println("tourGuides: " + tourGuides.get(0));
+
         requestATourGuideMessage.addReceiver((AID) tourGuides.get(0));//BEHÖVER FIXAS ?????
         try {
             requestATourGuideMessage.setContentObject(user);//This should be the user.
@@ -112,36 +113,11 @@ public class ProfilerAgents extends SuperAgent{
     }
 
 
-    //Den här behövs kanske inte?
-    private void findTourGuides() {
-        DFAgentDescription template = new DFAgentDescription();
-        ServiceDescription serviceDescription = new ServiceDescription();
-        serviceDescription.setType("TourGuideAgent");
-
-        template.addServices(serviceDescription);
-
-        try {
-            DFAgentDescription [] result = DFService.search(this, template);
-
-            if (result.length >0){
-                tourGuides = new ArrayList();
-                for (int i = 0; i < result.length ; i++){
-                    tourGuides.add(result[i].getName());
-                }
-
-            }
-        } catch (FIPAException e) {
-            e.printStackTrace();
-        }
-    }
-
     public class Subscribe extends SubscriptionInitiator {
 
         public Subscribe(Agent agent, ACLMessage message){
             super(agent, message);
-
         }
-
 
         protected void handleInform(ACLMessage inform){
             try {
@@ -156,10 +132,7 @@ public class ProfilerAgents extends SuperAgent{
             } catch (FIPAException e) {
                 e.printStackTrace();
             }
-
         }
-
-
     }
 
     public class ReplyReceiver extends MsgReceiver{
@@ -171,7 +144,7 @@ public class ProfilerAgents extends SuperAgent{
 
         @Override
         protected void handleMessage(ACLMessage message) {
-            System.out.println("Kommer jag hitt till handleMessage i reply receiver ");
+            System.out.println("The profiler agent " + myAgent.getLocalName() + " received a reply from tour agent with a virtual tour \n");
 
             try {
                 iDsOfArtifacts = (ArrayList) message.getContentObject();
@@ -180,7 +153,7 @@ public class ProfilerAgents extends SuperAgent{
             }
             AID AID = getCuratorAID(ProfilerAgents.this);
 
-            System.out.println("Hittar jag curator nu i profiler agents :" + AID);
+            System.out.println("Creating a ACL to request information about each artifacts in the tour");
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
             requestToCurator.setOntology("artifactsInfo");
             requestToCurator.addReceiver(AID);
@@ -211,14 +184,13 @@ public class ProfilerAgents extends SuperAgent{
 
         @Override
         protected ACLMessage prepareRequest(ACLMessage msg) {
-            System.out.println("kommer jag hit till get Artifacts");
             return super.prepareRequest(msg);
         }
 
         @Override
         protected void handleInform(ACLMessage message){
             super.handleInform(message);
-            System.out.println("KLARA?");
+            System.out.println("The profiler agent " + myAgent.getLocalName() + " received a reply from curator agent with information about the artifacts \n");
 
             try {
                 listOfArtifactsWithInformation = (ArrayList) message.getContentObject();
@@ -226,9 +198,16 @@ public class ProfilerAgents extends SuperAgent{
                 e.printStackTrace();
             }
 
-            System.out.println("Det här innehåller listan i slutet \n");
-            System.out.println(listOfArtifactsWithInformation);
+            printInformationAboutEachArtifact(listOfArtifactsWithInformation);
 
+        }
+
+        private void printInformationAboutEachArtifact(ArrayList listOfArtifactsWithInformation) {
+            for (int i = 0; i < listOfArtifactsWithInformation.size(); i++) {
+                Artifacts artifact = (Artifacts) listOfArtifactsWithInformation.get(i);
+                System.out.println("Artifact: " + artifact.getId() + " " + artifact.getName()  + " " + artifact.getCreator()  + " " +
+                artifact.getGenre()  + " " + artifact.getPlaceOfCreation() + " " + artifact.getDateOfCreation() + "\n");
+            }
         }
 /*
         @Override

@@ -10,19 +10,18 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.SimpleAchieveREResponder;
 import jade.util.leap.ArrayList;
-import jade.util.leap.HashMap;
 import jade.util.leap.Iterator;
 import userAndArtifacts.Artifacts;
 import userAndArtifacts.User;
 
 import java.io.IOException;
-import java.util.Map;
 
 /**
  * Created by tobiaj on 2016-11-09.
  */
 public class CuratorAgent extends SuperAgent {
-    java.util.HashMap<Integer, Artifacts> listOfArtifacts;
+    private java.util.HashMap<Integer, Artifacts> listOfArtifacts;
+
 
     public void setup() {
         super.setup();
@@ -35,11 +34,11 @@ public class CuratorAgent extends SuperAgent {
 
         SequentialBehaviour seq = new SequentialBehaviour();
 
-        MessageTemplate messageTemplate = MessageTemplate.MatchOntology("artifactsRequest");
-        MessageTemplate messageTemplate2 = MessageTemplate.MatchOntology("artifactsInfo");
+        MessageTemplate messageTemplateRequest = MessageTemplate.MatchOntology("artifactsRequest");
+        MessageTemplate messageTemplateInfo = MessageTemplate.MatchOntology("artifactsInfo");
 
-        ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplate);
-        ArtifactsInfo artifactsInfo = new ArtifactsInfo(this, messageTemplate2);
+        ArtifactsRequest artifactsRequest = new ArtifactsRequest(this, messageTemplateRequest);
+        ArtifactsInfo artifactsInfo = new ArtifactsInfo(this, messageTemplateInfo);
 
         parallelBehaviour.addSubBehaviour(artifactsRequest);
         parallelBehaviour.addSubBehaviour(artifactsInfo);
@@ -67,16 +66,16 @@ public class CuratorAgent extends SuperAgent {
         }
     }
 
+
     class ArtifactsRequest extends SimpleAchieveREResponder {
 
         public ArtifactsRequest(Agent agent, MessageTemplate messageTemplate) {
             super(agent, messageTemplate);
-            System.out.println("Hamnar jag här i artifactsRequest?");
         }
 
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-            System.out.println("Kommer jag hit till prepareresponse i artifactsRequest");
+            System.out.println("The curator agent " + myAgent.getLocalName() + " received a artifact request to create tour based on user preferences");
             ACLMessage reply = request.createReply();
             reply.setPerformative(ACLMessage.INFORM);
 
@@ -101,11 +100,10 @@ public class CuratorAgent extends SuperAgent {
             myAgent.addBehaviour(this);
             return super.onEnd();
         }
-    }
 
-    private ArrayList createTourForUser(User user) {
+        private ArrayList createTourForUser(User user) {
 
-        ArrayList listOfArtifactsIDs = new ArrayList();
+            ArrayList listOfArtifactsIDs = new ArrayList();
 
             for (Artifacts artifact : listOfArtifacts.values()) {
                 if (artifact.getGenre().equals(user.getInterest())){
@@ -113,19 +111,20 @@ public class CuratorAgent extends SuperAgent {
                 }
             }
 
-        return listOfArtifactsIDs;
+            return listOfArtifactsIDs;
+        }
     }
+
 
     class ArtifactsInfo extends SimpleAchieveREResponder {
 
         public ArtifactsInfo(Agent agent, MessageTemplate messageTemplate) {
             super(agent, messageTemplate);
-            System.out.println("Hamnar jag här i artifactsInfo?");
         }
 
         @Override
         protected ACLMessage prepareResponse(ACLMessage request) throws NotUnderstoodException, RefuseException {
-            System.out.println("Kommer jag hit till artifactsinfo");
+            System.out.println("The curator agent " + myAgent.getLocalName() + " received a artifact information request to return information about artifacts");
 
             ACLMessage reply = request.createReply();
             reply.setPerformative(ACLMessage.INFORM);
@@ -168,6 +167,8 @@ public class CuratorAgent extends SuperAgent {
             myAgent.addBehaviour(this);
             return super.onEnd();
         }
+
+
     }
 
 

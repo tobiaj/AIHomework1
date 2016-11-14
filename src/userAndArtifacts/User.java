@@ -6,6 +6,7 @@ import java.io.Serializable;
  * Created by tobiaj on 2016-11-10.
  */
 public class User implements Serializable{
+    //Serializable makes it possible to send object over network.
     private int age;
     private Name name;
     private Gender gender;
@@ -102,8 +103,4 @@ public class User implements Serializable{
         this.occupasion = occupasion;
     }
 
-    public static void main(String[] args) {
-        User user = new User();
-        System.out.println(user.age + " " + user.name + " " + user.interest);
-    }
 }

@@ -2,18 +2,10 @@ package Agents;
 
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.DataStore;
-import jade.core.behaviours.SequentialBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
-import jade.domain.FIPANames;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import jade.proto.AchieveREInitiator;
 import jade.proto.SimpleAchieveREInitiator;
 import jade.proto.states.MsgReceiver;
 
@@ -53,19 +45,17 @@ public class TourGuideAgent extends SuperAgent {
 
     class MessageReceiver extends MsgReceiver {
 
-
         public MessageReceiver(Agent myAgent, MessageTemplate messageTemplate, long deadline, DataStore ds, Object msgKey) {
             super(myAgent, messageTemplate, deadline, ds, msgKey);
-
         }
 
         public void handleMessage(ACLMessage message) {
 
-            System.out.println("Tour guide agent received a tour request from the profiler agent");
+            System.out.println("The Tour guide agent " + myAgent.getLocalName() + " received a tour request from the profiler agent");
 
             AID AID = getCuratorAID(TourGuideAgent.this);
 
-            System.out.println("Hittar jag curator? :" + AID);
+            System.out.println("Creating a ACL message for requesting artifacts from curator agent based in preferences");
             ACLMessage requestToCurator = new ACLMessage(ACLMessage.REQUEST);
             requestToCurator.setOntology("artifactsRequest");
             requestToCurator.addReceiver(AID);
@@ -77,7 +67,6 @@ public class TourGuideAgent extends SuperAgent {
             } catch (UnreadableException e) {
                 e.printStackTrace();
             }
-
 
             HandleTourRequestMessage handle = new HandleTourRequestMessage(TourGuideAgent.this, requestToCurator, message);
             addBehaviour(handle);
@@ -104,20 +93,16 @@ public class TourGuideAgent extends SuperAgent {
 
         @Override
         protected ACLMessage prepareRequest(ACLMessage msg) {
-            System.out.println("kommer jag hit till prepare i handle tour request ");
             return super.prepareRequest(msg);
         }
 
         @Override
         protected void handleInform(ACLMessage msg){
-
             super.handleInform(msg);
 
-            System.out.println(msg.getContent() + " content from curator");
-
-            System.out.println("Received artifacts???? from the curator");
+            System.out.println("The tour guide agent " + myAgent.getLocalName() + " Received artifacts from the curator \n");
+            System.out.println("Creating a reply message to the profiler with the created virtual tour");
             ACLMessage reply = originalMessage.createReply();
-            System.out.println("den ska till : " + originalMessage.getSender());
             reply.setPerformative(ACLMessage.INFORM);
             reply.setOntology("reply");
 
@@ -130,7 +115,6 @@ public class TourGuideAgent extends SuperAgent {
             }
 
             send(reply);
-
         }
 
         @Override
