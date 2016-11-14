@@ -44,7 +44,7 @@ public class User implements Serializable{
 
 
         age = (int) (Math.random() * 100);
-        yearInterest = (int) (Math.random() * 500) + 1500;
+        yearInterest = (int) (Math.random() * 2016);
 
         gender = Gender.values()[chooseGender];
         occupation = Occupation.values()[chooseOccupation];
