@@ -36,22 +36,18 @@ public class User implements Serializable{
         criminal
     }
 
-
     public User(){
         int chooseGender = (int) (Math.random() * 1);
         int chooseOccupation = (int) (Math.random() * 4);
         int chooseGenre = (int) (Math.random() * 3);
 
-
         age = (int) (Math.random() * 100);
         yearInterest = (int) (Math.random() * 2016);
-
         gender = Gender.values()[chooseGender];
         occupation = Occupation.values()[chooseOccupation];
-
         interest = Artifacts.Genre.values()[chooseGenre];
-
         name = Name.values()[chooseOccupation];
+
 
     }
 
