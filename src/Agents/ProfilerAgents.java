@@ -79,6 +79,7 @@ public class ProfilerAgents extends SuperAgent{
         Subscribe subscribe = new Subscribe(this, DFService.createSubscriptionMessage(this, getDefaultDF(), template, search));
 
         addBehaviour(subscribe);
+
     }
 
     private void requestATour() {
@@ -121,13 +122,12 @@ public class ProfilerAgents extends SuperAgent{
 
         protected void handleInform(ACLMessage inform){
             try {
+
                 DFAgentDescription[] result = DFService.decodeNotification(inform.getContent());
                 if (result.length > 0) {
                     System.out.println("Profiler agent " + getLocalName() + " received a subscription message from SuperAgent with name " + getDefaultDF());
                     addTourGuide(result);
-
                     requestATour();
-
                 }
             } catch (FIPAException e) {
                 e.printStackTrace();
@@ -145,7 +145,6 @@ public class ProfilerAgents extends SuperAgent{
         @Override
         protected void handleMessage(ACLMessage message) {
             System.out.println("The profiler agent " + myAgent.getLocalName() + " received a reply from tour agent with a virtual tour \n");
-
             try {
                 iDsOfArtifacts = (ArrayList) message.getContentObject();
             } catch (UnreadableException e) {

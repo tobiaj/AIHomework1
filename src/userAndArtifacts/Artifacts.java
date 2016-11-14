@@ -6,12 +6,11 @@ import java.io.Serializable;
  * Created by tobiaj on 2016-11-10.
  */
 public class Artifacts implements Serializable {
-
     private int id;
-    private String name;
-    private String creator;
+    private Name name;
+    private Creator creator;
     private int dateOfCreation;
-    private String placeOfCreation;
+    private Country placeOfCreation;
     private Genre genre;
 
     public enum Genre {
@@ -21,25 +20,56 @@ public class Artifacts implements Serializable {
         Photos
     }
 
+    public enum Creator {
+        picasso,
+        daVinci,
+        michelangelo,
+        donatello,
+        rafael,
+        donald,
+        minnie
+    }
+
+    public enum Name {
+        monalisa,
+        monkey,
+        lion,
+        tiger,
+        elephant,
+        dog,
+        cat
+    }
+
+    public enum Country {
+        italy,
+        sweden,
+        spain,
+        greece,
+        france,
+        england,
+        germany
+    }
+
     public Artifacts(){
         double randomNumber = Math.random();
         double rand = randomNumber * 100;
         int chooseGenre = (int) (Math.random() * 3);
+        int choose = (int) (Math.random() * 6);
 
         id = (int) rand;
-        name = "Thing " + id;
-        creator = "creator " + id;
-        dateOfCreation = (int) (Math.random() * 2000);
-        placeOfCreation = "Place " + id;
+        name = Name.values()[choose];
+        creator = Creator.values()[choose];
+        dateOfCreation = (int) (Math.random() * 2016);
+        placeOfCreation = Country.values()[choose];
         genre = Genre.values()[chooseGenre];
     }
 
 
-    public String getName() {
+    public Name getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(Name name) {
         this.name = name;
     }
 
@@ -51,11 +81,11 @@ public class Artifacts implements Serializable {
         this.id = id;
     }
 
-    public String getCreator() {
+    public Creator getCreator() {
         return creator;
     }
 
-    public void setCreator(String creator) {
+    public void setCreator(Creator creator) {
         this.creator = creator;
     }
 
@@ -75,11 +105,11 @@ public class Artifacts implements Serializable {
         this.genre = genre;
     }
 
-    public String getPlaceOfCreation() {
+    public Country getPlaceOfCreation() {
         return placeOfCreation;
     }
 
-    public void setPlaceOfCreation(String placeOfCreation) {
+    public void setPlaceOfCreation(Country placeOfCreation) {
         this.placeOfCreation = placeOfCreation;
     }
 

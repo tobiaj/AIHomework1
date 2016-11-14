@@ -18,8 +18,8 @@ public class TourGuideAgent extends SuperAgent {
 
     @Override
     protected void setup() {
-
         //calls the parent constructor with no arguments
+
         super.setup();
         System.out.println("The tour guide agent " + getLocalName() + " has started");
         System.out.println(getName());
@@ -71,16 +71,7 @@ public class TourGuideAgent extends SuperAgent {
             HandleTourRequestMessage handle = new HandleTourRequestMessage(TourGuideAgent.this, requestToCurator, message);
             addBehaviour(handle);
 
-
         }
-/*
-
-        @Override
-        public int onEnd() {
-            //myAgent.addBehaviour(this);
-            waitForTourRequestMessages();
-            return super.onEnd();
-        }*/
     }
 
     public class HandleTourRequestMessage extends SimpleAchieveREInitiator {
